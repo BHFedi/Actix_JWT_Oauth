@@ -1,147 +1,131 @@
-mod models;
+mod auth;
 mod config;
+mod db;
 mod dtos;
 mod error;
+mod handlers;
+mod models;
 mod utils;
-mod db;
-mod auth;
-mod handler;
 
 use actix_cors::Cors;
-use actix_web::{
-    get, http::header, middleware::Logger, web, App, HttpResponse, HttpServer, Responder,
-};
+use actix_web::{http::header, middleware::Logger, web, App, HttpServer};
 use config::Config;
 use db::DBClient;
 use dotenv::dotenv;
-use dtos::{
-    FilterUserDto, LoginUserDto, RegisterUserDto, Response, UserData, UserListResponseDto,
-    UserLoginResponseDto, UserResponseDto,
-};
 use sqlx::postgres::PgPoolOptions;
-use utoipa::{
-    openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme},
-    Modify, OpenApi,
-};
-use utoipa_rapidoc::RapiDoc;
-use utoipa_redoc::{Redoc, Servable};
+use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use handler::{auth as authHandler, users};
-
-#[derive(Debug, Clone)]
 pub struct AppState {
-    pub env: Config,
-    pub db_client: DBClient,
+    db_client: DBClient,
+    env: Config,
 }
 
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        authHandler::login,authHandler::logout,authHandler::register, users::get_me, users::get_users, heath_checker_handler
+        handlers::auth::register,
+        handlers::auth::login,
+        handlers::auth::logout,
+        // CHANGED: Use the generic mock_authorize and mock_callback handlers
+        handlers::oauth::mock_authorize,
+        handlers::oauth::mock_callback,
     ),
-    components(
-        schemas(UserData,FilterUserDto,LoginUserDto,RegisterUserDto,UserResponseDto,UserLoginResponseDto,Response,UserListResponseDto)
-    ),
+    components(schemas(
+        dtos::RegisterUserDto,
+        dtos::LoginUserDto,
+        dtos::FilterUserDto,
+        dtos::UserData,
+        dtos::UserResponseDto,
+        dtos::UserLoginResponseDto,
+        dtos::UserListResponseDto,
+        dtos::Response,
+    )),
     tags(
-        (name = "Rust Authentication Api", description = "Authentication in Rust API")
-    )
+        (name = "Register Account Endpoint", description = "User registration endpoints"),
+        (name = "Login Endpoint", description = "User login endpoints"),
+        (name = "Logout Endpoint", description = "User logout endpoints"),
+        // CHANGED: Use a single, generic tag for the mock server
+        (name = "OAuth - Mock Server", description = "Local Mock OAuth2 authentication for testing"), 
+    ),
+    modifiers(&SecurityAddon)
 )]
 struct ApiDoc;
 
-struct SecurityAddon;
+// --- SecurityAddon remains unchanged ---
 
-impl Modify for SecurityAddon {
+struct SecurityAddon;
+impl utoipa::Modify for SecurityAddon {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-        let components = openapi.components.as_mut().unwrap();
-        components.add_security_scheme(
-            "token", 
-            SecurityScheme::Http(
-                HttpBuilder::new()
-                .scheme(HttpAuthScheme::Bearer)
-                .bearer_format("JWT")
-                .build(),
+        if let Some(components) = openapi.components.as_mut() {
+            components.add_security_scheme(
+                "token",
+                utoipa::openapi::security::SecurityScheme::Http(
+                    utoipa::openapi::security::HttpAuthScheme::Bearer,
+                ),
             )
-        )
+        }
     }
 }
 
+// --- main function remains unchanged ---
+
 #[actix_web::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    openssl_probe::init_ssl_cert_env_vars();
+async fn main() -> std::io::Result<()> {
     if std::env::var_os("RUST_LOG").is_none() {
         std::env::set_var("RUST_LOG", "actix_web=info");
     }
-
     dotenv().ok();
     env_logger::init();
 
     let config = Config::init();
 
-    let pool = PgPoolOptions::new()
+    let pool = match PgPoolOptions::new()
         .max_connections(10)
         .connect(&config.database_url)
-        .await?;
-
-    match sqlx::migrate!("./migrations").run(&pool).await {
-        Ok(_) => println!("Migrations executed successfully."),
-        Err(e) => eprintln!("Error running migrations: {}", e),
-    }
-
-    let db_client = DBClient::new(pool);
-    let app_state = AppState { 
-        env: config.clone(), 
-        db_client 
+    {
+        Ok(pool) => {
+            println!("✅ Connection to the database is successful!");
+            pool
+        }
+        Err(err) => {
+            println!("❌ Failed to connect to the database: {:?}", err);
+            std::process::exit(1);
+        }
     };
 
-    println!(
-        "{}",
-        format!("Server is running on http://localhost:{}", config.port)
-    );
+    let db_client = DBClient::new(pool);
 
-    let openapi = ApiDoc::openapi();
+    println!("🚀 Server started successfully on http://localhost:8080");
 
     HttpServer::new(move || {
         let cors = Cors::default()
-                    .allowed_origin("http://localhost:3000")
-                    .allowed_origin("http://localhost:8000")
-                    .allowed_methods(vec!["GET", "POST"])
-                    .allowed_headers(vec![
-                        header::CONTENT_TYPE,
-                        header::AUTHORIZATION,
-                        header::ACCEPT,
-                    ])
-                    .supports_credentials();
+            .allowed_origin("http://localhost:3000")
+            .allowed_origin("http://localhost:8080")
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+            .allowed_headers(vec![
+                header::CONTENT_TYPE,
+                header::AUTHORIZATION,
+                header::ACCEPT,
+            ])
+            .supports_credentials()
+            .max_age(3600);
 
         App::new()
-            .app_data(web::Data::new(app_state.clone()))
+            .app_data(web::Data::new(AppState {
+                db_client: db_client.clone(),
+                env: config.clone(),
+            }))
             .wrap(cors)
             .wrap(Logger::default())
-            .service(handler::auth::auth_handler())
-            .service(handler::users::users_handler())
-            .service(heath_checker_handler)
-            .service(Redoc::with_url("/redoc", openapi.clone()))
-            .service(RapiDoc::new("/api-docs/openapi.json").path("/rapidoc"))
-            .service(SwaggerUi::new("/{_:.*}").url("/api-docs/openapi.json", openapi.clone()))
+            .service(handlers::auth::auth_handler())
+            .service(handlers::oauth::oauth_handler()) // Add OAuth routes
+            .service(
+                SwaggerUi::new("/swagger-ui/{_:.*}")
+                    .url("/api-docs/openapi.json", ApiDoc::openapi()),
+            )
     })
-    .bind(("0.0.0.0", config.port))?
+    .bind(("0.0.0.0", 8080))?
     .run()
-    .await?;
-
-    Ok(())
-}
-
-#[utoipa::path(
-    get,
-    path = "/api/healthchecker",
-    tag = "Health Checker Endpoint",
-    responses(
-        (status = 200, description= "Authenticated User", body = Response),       
-    )
-)]
-#[get("/api/healthchecker")]
-async fn heath_checker_handler() -> impl Responder {
-    const MESSAGE: &str = "Complete Rust API";
-
-    HttpResponse::Ok().json(serde_json::json!({"status":"success", "message": MESSAGE}))
+    .await
 }

@@ -3,8 +3,6 @@ name = "rust_auth"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 actix-cors = "0.7.0"
 actix-web = "4.3.1"
@@ -25,3 +23,9 @@ utoipa-redoc = { version = "2.0.0", features = ["actix-web"] }
 utoipa-swagger-ui = { version = "5.0.0", features = ["actix-web"] }
 uuid = { version = "1.4.1", features = ["serde", "v4"] }
 validator = { version = "0.16.1", features = ["derive"] }
+
+# OAuth2 dependencies
+reqwest = { version = "0.11", features = ["json"] }
+url = "2.4"
+rand = "0.8"
+base64 = "0.21"
