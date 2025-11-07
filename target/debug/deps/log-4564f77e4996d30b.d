@@ -1,0 +1,13 @@
+/home/ubuntu/project-Oauth/rust_auth/target/debug/deps/log-4564f77e4996d30b.d: /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/lib.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/macros.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/serde.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/mod.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/error.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/key.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/source.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/value.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/__private_api.rs
+
+/home/ubuntu/project-Oauth/rust_auth/target/debug/deps/liblog-4564f77e4996d30b.rmeta: /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/lib.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/macros.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/serde.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/mod.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/error.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/key.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/source.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/value.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/__private_api.rs
+
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/lib.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/macros.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/serde.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/mod.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/error.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/key.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/source.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/kv/value.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.22/src/__private_api.rs:
